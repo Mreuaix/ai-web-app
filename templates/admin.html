@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+  <section class="panel">
+    <div class="panel__title">后台管理</div>
+    <div class="panel__body">
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__title">账号登录信息管理</div>
+          <div class="card__text">默认提供管理员账号，可在数据库中扩展。</div>
+          <div class="card__meta">当前登录：#{{ session.get("user_id") }}</div>
+        </div>
+        <div class="card">
+          <div class="card__title">系统状态</div>
+          <div class="card__text">用于快速检查服务是否正常运行。</div>
+          <a class="btn btn--ghost" href="{{ url_for('healthz') }}" target="_blank">打开健康检查</a>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+

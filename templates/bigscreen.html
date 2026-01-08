@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI数智大屏</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body class="bigscreen">
+    <canvas id="particles"></canvas>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand__name">AI智能政企瞭望舆情收集分析系统</div>
+      </div>
+      <nav class="nav">
+        <a href="{{ url_for('bigscreen') }}" class="nav__link">数智大屏</a>
+        <a href="{{ url_for('collect_page') }}" class="nav__link">采集管理</a>
+        <a href="{{ url_for('data_page') }}" class="nav__link">数据管理</a>
+        <a href="{{ url_for('crawlers') }}" class="nav__link">爬虫管理</a>
+        <a href="{{ url_for('models_page') }}" class="nav__link">AI模型管理</a>
+        <a href="{{ url_for('report_page') }}" class="nav__link">AI分析报告</a>
+      </nav>
+      <form class="nav__logout" action="{{ url_for('logout') }}" method="post">
+        <button class="btn btn--ghost" type="submit">退出</button>
+      </form>
+    </header>
+
+    <main class="screen">
+      <section class="screen__left">
+        <div class="screenpanel">
+          <div class="screenpanel__title">舆情热搜（来自baidu.com）</div>
+          <div id="hotList" class="hotlist"></div>
+        </div>
+        <div class="screenpanel">
+          <div class="screenpanel__title">热搜分类</div>
+          <div id="sourceChart" class="miniChart"></div>
+        </div>
+      </section>
+
+      <section class="screen__center">
+        <div class="mapbox">
+          <div id="chinaMap" class="map"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+    <script src="{{ url_for('static', filename='js/particles.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bigscreen.js') }}"></script>
+  </body>
+</html>

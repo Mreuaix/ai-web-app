@@ -1,0 +1,169 @@
+{% extends "layout.html" %}
+{% block content %}
+  <section class="panel reportPage">
+    <div class="panel__title">AI分析报告</div>
+    <div class="panel__body">
+      <div class="reportDash">
+        <div class="card reportCard">
+          <div class="card__title">保存数据概览</div>
+          <div class="reportCard__body">
+            <div class="row row--gap">
+              <span class="badge">已保存：<b id="savedTotal">0</b></span>
+              <span class="badge badge--muted">关键词：<b id="savedKeywordsTotal">0</b></span>
+              <span class="badge badge--muted">来源：<b id="savedSourcesTotal">0</b></span>
+            </div>
+
+            <div class="grid grid--2 reportTwoCol">
+              <div class="reportBlock">
+                <div class="label">Top关键词（已保存）</div>
+                <div id="topKeywords" class="chips reportChips"></div>
+              </div>
+              <div class="reportBlock">
+                <div class="label">Top来源（已保存）</div>
+                <div class="table table--2 reportTable">
+                  <div class="table__row table__row--head">
+                    <div>来源</div>
+                    <div>数量</div>
+                  </div>
+                  <div id="topSources" class="reportScroll"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card reportCard">
+          <div class="card__title">关键词搜索记录</div>
+          <div class="reportCard__body">
+            <div class="label">最近搜索</div>
+            <div class="table table--3 reportTable">
+              <div class="table__row table__row--head">
+                <div>关键词</div>
+                <div>次数</div>
+                <div>最近时间</div>
+              </div>
+              <div id="recentSearches" class="reportScroll"></div>
+            </div>
+
+            <div class="label">Top搜索关键词</div>
+            <div id="topSearches" class="chips reportChips reportChips--sm"></div>
+          </div>
+        </div>
+
+        <div class="card reportCard">
+          <div class="card__title">来源分布</div>
+          <div class="reportCard__body">
+            <div class="chartbox reportChartbox">
+              <canvas id="chartSources"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card reportCard">
+          <div class="card__title">关键词分布</div>
+          <div class="reportCard__body">
+            <div class="chartbox reportChartbox">
+              <canvas id="chartKeywords"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    const elSavedTotal = document.getElementById('savedTotal');
+    const elSavedKeywordsTotal = document.getElementById('savedKeywordsTotal');
+    const elSavedSourcesTotal = document.getElementById('savedSourcesTotal');
+    const elTopKeywords = document.getElementById('topKeywords');
+    const elTopSources = document.getElementById('topSources');
+    const elRecentSearches = document.getElementById('recentSearches');
+    const elTopSearches = document.getElementById('topSearches');
+    let chartSources = null;
+    let chartKeywords = null;
+
+    function chip(text, muted) {
+      const span = document.createElement('span');
+      span.className = muted ? 'chip chip--muted' : 'chip';
+      span.textContent = text;
+      return span;
+    }
+
+    function fmtTime(iso) {
+      if (!iso) return '';
+      return iso.replace('T', ' ').slice(0, 19);
+    }
+
+    function render(data) {
+      elSavedTotal.textContent = String(data.saved_total || 0);
+      elSavedKeywordsTotal.textContent = String(data.saved_keywords_total || 0);
+      elSavedSourcesTotal.textContent = String(data.saved_sources_total || 0);
+
+      elTopKeywords.innerHTML = '';
+      (data.top_keywords || []).forEach(x => {
+        elTopKeywords.appendChild(chip(`${x.keyword} · ${x.value}`, false));
+      });
+
+      elTopSources.innerHTML = '';
+      (data.top_sources || []).forEach(x => {
+        const row = document.createElement('div');
+        row.className = 'table__row';
+        row.innerHTML = `<div>${x.name}</div><div class="muted">${x.value}</div>`;
+        elTopSources.appendChild(row);
+      });
+
+      elRecentSearches.innerHTML = '';
+      (data.recent_searches || []).forEach(x => {
+        const row = document.createElement('div');
+        row.className = 'table__row';
+        row.innerHTML = `<div>${x.keyword}</div><div class="muted">${x.count}</div><div class="muted">${fmtTime(x.last)}</div>`;
+        elRecentSearches.appendChild(row);
+      });
+
+      elTopSearches.innerHTML = '';
+      (data.top_searches || []).forEach(x => {
+        elTopSearches.appendChild(chip(`${x.keyword} · ${x.count}`, true));
+      });
+
+      const srcLabels = (data.top_sources || []).map(x => x.name);
+      const srcValues = (data.top_sources || []).map(x => x.value);
+      const kwLabels = (data.top_keywords || []).map(x => x.keyword).slice(0, 10);
+      const kwValues = (data.top_keywords || []).map(x => x.value).slice(0, 10);
+
+      const ctx1 = document.getElementById('chartSources');
+      if (chartSources) chartSources.destroy();
+      chartSources = new Chart(ctx1, {
+        type: 'doughnut',
+        data: { labels: srcLabels, datasets: [{ data: srcValues }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: 'rgba(255,255,255,0.75)' } } }
+        }
+      });
+
+      const ctx2 = document.getElementById('chartKeywords');
+      if (chartKeywords) chartKeywords.destroy();
+      chartKeywords = new Chart(ctx2, {
+        type: 'bar',
+        data: { labels: kwLabels, datasets: [{ data: kwValues, borderWidth: 1 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: 'rgba(255,255,255,0.75)' } },
+            y: { beginAtZero: true, ticks: { color: 'rgba(255,255,255,0.75)' } }
+          }
+        }
+      });
+    }
+
+    fetch('{{ url_for("api_report_overview") }}')
+      .then(r => r.json())
+      .then(d => { if (d.ok) render(d); })
+      .catch(() => {});
+  </script>
+{% endblock %}

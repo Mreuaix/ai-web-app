@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block content %}
+  <section class="panel">
+    <div class="panel__title">爬虫管理</div>
+    <div class="panel__body">
+      <form method="post" action="{{ url_for('crawlers_create') }}" class="form form--inline">
+        <input class="input" name="name" placeholder="爬虫源名称，例如：百度搜索" />
+        <select class="select" name="type">
+          <option value="baidu">baidu</option>
+          <option value="google_news_rss">google_news_rss</option>
+          <option value="gdelt">gdelt</option>
+        </select>
+        <label class="switch">
+          <input type="checkbox" name="enabled" checked />
+          <span class="switch__text">启用</span>
+        </label>
+        <button class="btn btn--primary" type="submit">新增</button>
+      </form>
+
+      <div class="table">
+        <div class="table__row table__row--head">
+          <div>名称</div>
+          <div>类型</div>
+          <div>状态</div>
+          <div>操作</div>
+        </div>
+        {% for s in sources %}
+          <div class="table__row">
+            <div>{{ s.name }}</div>
+            <div>{{ s.type }}</div>
+            <div>
+              {% if s.enabled %}
+                <span class="badge badge--ok">启用</span>
+              {% else %}
+                <span class="badge badge--muted">停用</span>
+              {% endif %}
+            </div>
+            <div class="table__actions">
+              <form method="post" action="{{ url_for('crawlers_toggle', source_id=s.id) }}">
+                <button class="btn btn--ghost" type="submit">{{ "停用" if s.enabled else "启用" }}</button>
+              </form>
+              <form method="post" action="{{ url_for('crawlers_delete', source_id=s.id) }}" onsubmit="return confirm('确认删除该爬虫源？');">
+                <button class="btn btn--danger" type="submit">删除</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

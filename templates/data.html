@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block content %}
+  <section class="panel">
+    <div class="panel__title">数据管理</div>
+    <div class="panel__body">
+      <div class="toolbar">
+        <form class="toolbar__search" method="get" action="{{ url_for('data_page') }}">
+          <input class="input toolbar__searchInput" name="q" value="{{ q }}" placeholder="模糊查询标题/来源" />
+          <button class="btn btn--ghost" type="submit">搜索</button>
+        </form>
+        <div class="toolbar__right">
+          <button id="btnBatchDelete" class="btn btn--danger" disabled>批量删除</button>
+          <button class="btn btn--ghost" disabled>批量AI深度采集</button>
+        </div>
+      </div>
+
+      <div class="table">
+        <div class="table__row table__row--head">
+          <div>选择</div>
+          <div>标题</div>
+          <div>时间</div>
+          <div>来源</div>
+          <div class="table__headActions">操作</div>
+        </div>
+        {% for item in items %}
+          <div class="table__row">
+            <div><input class="chk" type="checkbox" value="{{ item.id }}" /></div>
+            <div class="title">
+              <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+            </div>
+            <div class="muted">{{ item.published_at or item.collected_at }}</div>
+            <div><span class="badge badge--muted">{{ item.source }}</span></div>
+            <div class="table__actions">
+              <button class="btn btn--ghost" disabled>AI深度采集</button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="pager">
+        <div class="pager__meta">共 {{ total }} 条</div>
+        <div class="pager__links">
+          {% set pages = (total // page_size) + (1 if total % page_size else 0) %}
+          {% if page > 1 %}
+            <a class="btn btn--ghost" href="{{ url_for('data_page', q=q, page=page-1) }}">上一页</a>
+          {% endif %}
+          <span class="pager__cur">{{ page }} / {{ pages if pages>0 else 1 }}</span>
+          {% if page < pages %}
+            <a class="btn btn--ghost" href="{{ url_for('data_page', q=q, page=page+1) }}">下一页</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const chks = Array.from(document.querySelectorAll('.chk'));
+    const btnBatchDelete = document.getElementById('btnBatchDelete');
+    const selectedIds = () => chks.filter(x => x.checked).map(x => Number(x.value));
+    const sync = () => { btnBatchDelete.disabled = selectedIds().length === 0; };
+    chks.forEach(x => x.addEventListener('change', sync));
+    sync();
+    btnBatchDelete.addEventListener('click', async () => {
+      const ids = selectedIds();
+      if (!ids.length) return;
+      if (!confirm(`确认删除 ${ids.length} 条数据？`)) return;
+      const r = await fetch('{{ url_for("data_delete") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_ids: ids })
+      });
+      const d = await r.json();
+      if (!d.ok) { alert(d.error || '删除失败'); return; }
+      location.reload();
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+  <section class="panel">
+    <div class="panel__title">采集管理</div>
+    <div class="panel__body">
+      <div class="collect">
+        <div class="collect__top">
+          <div class="collect__keyword">
+            <div class="label">关键字</div>
+            <input id="keyword" class="input input--lg" placeholder="输入关键字，开始定向采集" />
+          </div>
+          <div class="collect__actions">
+            <div class="collect__actionsSpacer"></div>
+            <div class="collect__actionsRow">
+              <input id="limit" class="input input--lg collect__limit" type="number" min="1" max="50" value="10" />
+              <button id="btnStart" class="btn btn--primary btn--lg">开始采集</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="collect__sources">
+          <div class="label">爬虫源选择</div>
+          <div class="source-switches">
+            {% for s in sources %}
+              <label class="toggle">
+                <input type="checkbox" class="toggle__input" value="{{ s.id }}" {% if s.enabled %}checked{% endif %} />
+                <span class="toggle__pill">
+                  <span class="toggle__dot"></span>
+                  <span class="toggle__text">{{ s.name }}</span>
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="collect__list">
+          <div class="label">橱窗数据列表</div>
+          <div id="streamStatus" class="status">等待采集…</div>
+          <div id="cards" class="cards"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/collect.js') }}"></script>
+{% endblock %}

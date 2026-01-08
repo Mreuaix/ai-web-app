@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title or "AI智能政企舆情系统" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body class="{{ body_class or '' }}">
+    <canvas id="particles"></canvas>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand__name">AI智能政企瞭望舆情收集分析系统</div>
+      </div>
+      <nav class="nav">
+        <a href="{{ url_for('bigscreen') }}" class="nav__link">数智大屏</a>
+        <a href="{{ url_for('collect_page') }}" class="nav__link">采集管理</a>
+        <a href="{{ url_for('data_page') }}" class="nav__link">数据管理</a>
+        <a href="{{ url_for('crawlers') }}" class="nav__link">爬虫管理</a>
+        <a href="{{ url_for('models_page') }}" class="nav__link">AI模型管理</a>
+        <a href="{{ url_for('report_page') }}" class="nav__link">AI分析报告</a>
+      </nav>
+      <form class="nav__logout" action="{{ url_for('logout') }}" method="post">
+        <button class="btn btn--ghost" type="submit">退出</button>
+      </form>
+    </header>
+
+    <main class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash">
+            {% for category, message in messages %}
+              <div class="flash__item flash__item--{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/particles.js') }}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
+
